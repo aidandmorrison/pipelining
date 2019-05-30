@@ -101,7 +101,7 @@ But the key advantage is:
 ## ftplanes
 
 ```{r ftplanes, echo = TRUE,  warning=F, message=F}
-ftplanes <- read_csv("/Users/aidanmorrison/fighterplanes/intdata/ftplanes.csv")
+ftplanes <- read_csv("ftplanes.csv")
 head(ftplanes)
 ```
 
@@ -383,5 +383,15 @@ ftplanes_n <- ftplanes_n %>%
          size_current_airforce = serving_planes %>% map_dbl(~ .x  %>% pull(number) %>% sum())) 
 head(ftplanes_n)
 ```
+
+## Thanks
+
+Aidan Morrison
+
+aidan@trendlock.com.au
+
+@QuixoticQuant
+
+https://github.com/aidandmorrison/pipelining
 
 
