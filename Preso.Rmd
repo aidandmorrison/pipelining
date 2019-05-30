@@ -203,7 +203,7 @@ linmod <- df_train %>%
 summary(linmod)
 ```
 
-As it turns out, highly correlated with date and year!
+As it turns out, highly correlated with number and year!
 ```{r, linmodel2}
 df_train <- ftplanes_slim %>%
     select_if(.predicate = is.numeric) %>% 
@@ -233,12 +233,44 @@ summary(linmod)
 - Narrowing: As early as possible, (provided you save it), ideally in a way that is descriptive rather than hard-coded, but records and can revert to a result
 - Reservoiring: Before removing data
 
+## A quick thought on names
+(it's true, there are only two hard things in computer science...)
 
+They probably will have to change...
+
+```{r names, eval = FALSE}
+### Changing Colnames to be safer for data operations
+colnames(df_work) <- c(colnames(df_work) %>% 
+                         str_replace_all("-", "_") %>% 
+                         str_replace_all("/", "_") %>% 
+                         str_replace_all("\\(", "_") %>%
+                         str_replace_all("%", "percent_") %>%
+                         str_replace_all("\\)", "_") %>%
+                         str_replace_all(" ", "_") %>% 
+                         str_replace_all("__", "_") %>% 
+                         str_replace_all("__", "_")) 
+```
+
+I tend to use:
+
+- just underscores
+- generally avoid capitalisation
+- tolerate long names
+- include some recogniseable chunk of the 'original' name string
+
+## A worked example
 ```{r example, eval = T}
 
 ### Create two tables reflecting provenance
 meta <- ftplanes %>% select(name, country, year, number, status)
 specs <- ftplanes %>% select(-country, -year, -number, -status)
+
+### Engineer strictly physical attributes
+specs <- specs %>% 
+  mutate(power_weight = Powerplant_kW / Empty_weight_kg,
+         length_width = Length_m / Wingspan_m,
+         length_height  = Length_m / Height_m,
+         power_area = Powerplant_kW / Wing_area_m2)
 
 ### Sort out a sensible prefix to show origin
 metanames <- colnames(meta)[-1]
@@ -336,4 +368,20 @@ df_master %>%
 - Figure out how large a look-back is required for next increment of data
 - Use rolling counts/increments 
 - Write a loop to re-iterate increments for the whole time-period, rather than assumming all data available. 
+
+Here's how to nest
+
+```{r nesting}
+ftplanes_n  <- ftplanes %>% 
+  arrange(country, year, number) %>% 
+  group_by(country) %>% 
+  nest()
+head(ftplanes_n)
+
+ftplanes_n <- ftplanes_n %>% 
+  mutate(serving_planes = data %>% map(~ .x %>% filter(status == "Operational")),
+         size_current_airforce = serving_planes %>% map_dbl(~ .x  %>% pull(number) %>% sum())) 
+head(ftplanes_n)
+```
+
 
